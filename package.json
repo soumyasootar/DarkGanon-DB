@@ -1,0 +1,25 @@
+{
+  "name": "darkganon-db",
+  "version": "1.0.0",
+  "description": "DISCORD BOT",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soumyasootar/DarkGanon-DB.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/soumyasootar/DarkGanon-DB/issues"
+  },
+  "homepage": "https://github.com/soumyasootar/DarkGanon-DB#readme",
+  "dependencies": {
+    "discord.js": "^14.11.0",
+    "dotenv": "^16.0.3"
+  }
+}
