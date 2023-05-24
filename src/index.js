@@ -47,16 +47,25 @@ client.on("messageCreate", async (message) => {
     });
     return;
   }
-
   let conversationLog = [
     { role: "system", content: "You are a friendly ChatBot." },
   ];
-  conversationLog.push({
-    role: "user",
-    content: message.content,
+  await message.channel.sendTyping();
+
+  let prevMessage = await message.channel.messages.fetch({ limit: 15 });
+  prevMessage.reverse();
+
+  prevMessage.forEach((msg) => {
+    if (message.content.startsWith("!")) return;
+    if (msg.author.id !== client.user.id && message.author.bot) return; //ignore other bot
+    if (msg.author.id !== message.author.id) return;
+
+    conversationLog.push({
+      role: "user",
+      content: msg.content,
+    });
   });
 
-  await message.channel.sendTyping();
 
   const result = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
