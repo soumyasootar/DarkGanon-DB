@@ -52,12 +52,12 @@ client.on("messageCreate", async (message) => {
   ];
   await message.channel.sendTyping();
 
-  let prevMessage = await message.channel.messages.fetch({ limit: 15 });
+  let prevMessage = await message.channel.messages.fetch({ limit: 20 });
   prevMessage.reverse();
 
   prevMessage.forEach((msg) => {
     if (message.content.startsWith("!")) return;
-    if (msg.author.id !== client.user.id && message.author.bot) return; //ignore other bot
+    // if (msg.author.id !== client.user.id && message.author.bot) return; //ignore other bot
     if (msg.author.id !== message.author.id) return;
 
     conversationLog.push({
