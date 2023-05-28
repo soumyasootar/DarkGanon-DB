@@ -46,6 +46,78 @@ const commands = [
     ],
   },
   {
+    name: "github",
+    description: "Gives you all info of github user",
+    options: [
+      {
+        name: "username",
+        description: "Enter Github username",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      }
+    ],
+  },
+  {
+    name: "Create Google Calender Event",
+    description: "Creates a Google Calender event",
+    options: [
+      {
+        name: "title",
+        description: "Enter title of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
+        name: "description",
+        description: "Enter description of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
+        name: "date",
+        description: "Enter date (DD/MM/YYYY eg: 02/05/2023) of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
+        name: "time",
+        description: "Enter time(HH:MM am/pm eg: 10:50pm) of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      }
+    ],
+  },
+  {
+    name: "Create Google Meet",
+    description: "Schedules a Google Meet event with multiple email",
+    options: [
+      {
+        name: "title",
+        description: "Enter title of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
+        name: "description",
+        description: "Enter description of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
+        name: "date",
+        description: "Enter date (DD/MM/YYYY eg: 02/05/2023) of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
+        name: "time",
+        description: "Enter time(HH:MM am/pm eg: 10:50pm) of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      }
+    ],
+  },
+  {
     name:"embed",
     description:"Sends an embed!"
   }
