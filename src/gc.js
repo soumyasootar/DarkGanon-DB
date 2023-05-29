@@ -9,7 +9,6 @@ const uuid = require("uuid").v4;
 const app = express();
 
 const PORT = process.env.NODE_ENV || 3000;
-        // console.log(dayjs(new Date()).add(1, "day").toISOString())
 
 const oAuth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
@@ -33,13 +32,14 @@ app.get("/google/redirect", async (req, res) => {
   const code = req.query.code;
   const { tokens } = await oAuth2Client.getToken(code);
   oAuth2Client.setCredentials(tokens);
-  res.send({ message: "User Authenticated" ,
-clickhere:"http://localhost:3000/schedule"});
+  res.send({
+    message: "User Authenticated",
+    clickhere: "http://localhost:3000/schedule",
+  });
 });
 
 app.get("/schedule", async (req, res) => {
   const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
-
 
   const createdEvent = await calendar.events.insert({
     calendarId: "primary",
@@ -56,24 +56,23 @@ app.get("/schedule", async (req, res) => {
         dateTime: dayjs(new Date()).add(1, "day").toISOString(),
         timeZone: "Asia/Kolkata",
       },
-    //   conferenceData: {
-    //     createRequest: {
-    //       requestId: uuid(),
-    //     },
-    //     attendees: [
-    //       { email: "gameshighon@gmail.com" },
-    //       { email: "narayandutta2208@gmail.com" },
-    //     ],
-    //   },
-    //   attendees: [
-    //     { email: "gameshighon@gmail.com" },
-    //     { email: "narayandutta2208@gmail.com" },
-    //   ],
+      conferenceData: {
+        createRequest: {
+          requestId: uuid(),
+        },
+        attendees: [
+          { email: "gameshighon@gmail.com" },
+          { email: "narayandutta2208@gmail.com" },
+        ],
+      },
+      attendees: [
+        { email: "gameshighon@gmail.com" },
+        { email: "narayandutta2208@gmail.com" },
+      ],
     },
   });
-  
-  
-  res.send({message:createdEvent.data.htmlLink})
+
+  res.send({ message: createdEvent.data.htmlLink });
 });
 
 app.listen(PORT, () => {

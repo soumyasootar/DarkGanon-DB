@@ -1,4 +1,5 @@
 require("dotenv").config();
+const uuid = require("uuid").v4;
 const {
   Client,
   Events,
@@ -11,8 +12,10 @@ const figlet = require("figlet");
 const axios = require("axios");
 const { google } = require("googleapis");
 const express = require("express");
+const dayjs = require("dayjs");
 const app = express();
 // const { Configuration, OpenAIApi } = require("openai");
+const PORT = process.env.NODE_ENV || 3000;
 
 const {
   GOOGLE_CLIENT_ID,
@@ -138,65 +141,6 @@ client.on("messageCreate", async (message) => {
     // message.channel.send(`Yo! Human User named ${username}`)
     return;
   }
-  // Handle event creation command
-  if (message.content.toLowerCase().startsWith("!createevent")) {
-    const command = message.content.toLowerCase().split(" ");
-    if (command.length < 3) {
-      message.reply("Please provide a valid event title and date.");
-      return;
-    }
-
-    const title = command[1];
-    const date = command[2];
-
-    // Authenticate the user
-    const authUrl = oAuth2Client.generateAuthUrl({
-      scope: ["https://www.googleapis.com/auth/calendar.events"],
-    });
-    message.reply(`Please visit the following URL to authenticate: ${authUrl}`);
-
-    // Listen for authentication code
-    const collector = message.channel.createMessageCollector({
-      filter: (m) => m.author.id === message.author.id,
-      max: 1,
-    });
-
-    collector.on("collect", async (m) => {
-      const code = m.content;
-
-      // Exchange authorization code for access token
-      const { tokens } = await oAuth2Client.getToken(
-        "4/0AbUR2VPI3gvb9q57B9GEwcuLSLlJlv-S3A7tmseoDTS61CyqPYj2hEssruxthjIyBRlH0A"
-      );
-      oAuth2Client.setCredentials(tokens);
-
-      // Create event in Google Calendar
-      const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
-      const event = {
-        summary: title,
-        start: {
-          dateTime: date,
-          timeZone: "America/New_York", // Adjust the timezone as per your requirement
-        },
-        end: {
-          dateTime: date,
-          timeZone: "America/New_York",
-        },
-      };
-
-      try {
-        const createdEvent = await calendar.events.insert({
-          calendarId: "primary",
-          resource: event,
-        });
-
-        message.reply(`Event created: ${createdEvent.data.htmlLink}`);
-      } catch (error) {
-        console.error("Error creating event:", error);
-        message.reply("Failed to create the event. Please try again later.");
-      }
-    });
-  }
 
   //  chat-gpt code starts ---------------------------//
   // let conversationLog = [
@@ -231,13 +175,71 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand) return;
 
   console.log("interaction: ", interaction.commandName);
+
   if (interaction.commandName == "hey") {
     interaction.reply("Heyyyyyyyyy 🙌");
-  }
-  if (interaction.commandName == "ping") {
+  } else if (interaction.commandName == "ping") {
     interaction.reply("Pong!🏓");
-  }
-  if (interaction.commandName == "github") {
+  } else if (interaction.commandName == "calender") {
+    let title = interaction.options.get("title")?.value;
+    let description = interaction.options.get("description")?.value;
+    let date = interaction.options.get("date")?.value;
+    let time = interaction.options.get("time")?.value;
+
+    const [day, month, year] = date.split("/");
+    const [hour, minute, period] = time.match(/(\d+):(\d+)(am|pm)/i).slice(1);
+    console.log("minute: ", minute);
+    console.log("hour: ", hour);
+
+    let formattedHour = parseInt(hour);
+    if (period.toLowerCase() === "pm" && formattedHour !== 12) {
+      formattedHour += 12;
+    } else if (period.toLowerCase() === "am" && formattedHour === 12) {
+      formattedHour = 0;
+    }
+    console.log("formattedHour: ", formattedHour);
+    console.log(
+      "formattedHour.toString().padStart(2, '0')",
+      formattedHour.toString().padStart(2, "0")
+    );
+    formattedHour = formattedHour.toString().padStart(2, "0");
+
+    const startDateTime = new Date(
+      year,
+      parseInt(month) - 1,
+      day,
+      formattedHour,
+      minute
+    );
+
+    // console.log("dayjs(new Date()): ", dayjs(new Date()));
+    // console.log("startDateTime:", startDateTime);
+    // const localStartDateTime = startDateTime.toLocaleString();
+    // console.log("localStartDateTime: ", localStartDateTime);
+
+    // Authenticate the user
+    const authUrl = oAuth2Client.generateAuthUrl({
+      scope: ["https://www.googleapis.com/auth/calendar.events"],
+      state: interaction.channel.id,
+      // Store the Discord channel ID as state
+    });
+
+
+    const embed = new EmbedBuilder()
+    .setTitle("Login/Signup with your Google Account")
+    .setAuthor({
+      name: "CLICK HERE",
+      url: authUrl,
+      iconURL:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/2008px-Google_%22G%22_Logo.svg.png"
+    })
+    .setDescription("Please Authenticate to proceed")
+    .setColor("Random");
+    // Send the authorization URL in the Discord channel
+    interaction.reply(
+      { embeds: [embed] }
+      );
+
+  } else if (interaction.commandName == "github") {
     let username = interaction.options.get("username")?.value;
     console.log("username: ", username);
     try {
@@ -295,8 +297,7 @@ client.on("interactionCreate", async (interaction) => {
     } catch (error) {
       console.error("Error fetching GitHub user details:", error);
     }
-  }
-  if (interaction.commandName == "embed") {
+  } else if (interaction.commandName == "embed") {
     const embed = new EmbedBuilder()
       .setTitle("Embed Title")
       .setDescription("This a embed Description")
@@ -322,8 +323,7 @@ client.on("interactionCreate", async (interaction) => {
     interaction.reply({
       embeds: [embed],
     });
-  }
-  if (interaction.commandName == "calculate") {
+  } else if (interaction.commandName == "calculate") {
     const num1 = interaction.options.get("first-number")?.value;
     const operation = interaction.options.get("operation-type")?.value;
     const num2 = interaction.options.get("second-number")?.value;
@@ -355,6 +355,86 @@ client.on("interactionCreate", async (interaction) => {
 });
 // Log in to Discord with your client's token
 client.login(process.env.BOT_TOKEN);
+
+app.get("/", (req, res) => {
+  res.send({ authUrl: "http://localhost:3000/google" });
+});
+
+app.get("/google", (req, res) => {
+  const authUrl = oAuth2Client.generateAuthUrl({
+    scope: ["https://www.googleapis.com/auth/calendar.events"],
+    access_type: "offline",
+    state: CHANNEL_ID,
+  });
+
+  res.send({ authUrl: authUrl });
+});
+app.get("/", (req, res) => {
+  res.send({ authUrl: "http://localhost:3000/google" });
+});
+
+app.get("/google/redirect", async (req, res) => {
+  const code = req.query.code;
+  const channelID = req.query.state;
+  const { tokens } = await oAuth2Client.getToken(code);
+  oAuth2Client.setCredentials(tokens);
+  const channel = await client.channels.fetch(channelID);
+  const embed = new EmbedBuilder()
+    .setTitle("Confirmation Message")
+    .setAuthor({
+      name: "CLICK HERE",
+      url: "http://localhost:3000/schedule",
+      iconURL:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/2048px-Google_Calendar_icon_%282020%29.svg.png"
+    })
+    .setDescription("Please Confirm or Ignore")
+    .setColor(0xFF0000)
+    .setFooter({
+      text: `After Confirming , Come back to discord`,
+    });
+  channel.send({ embeds: [embed] });
+  res.send({
+    message: "User Authenticated,Go Back to Discord",
+    clickhere: "http://localhost:3000/schedule",
+  });
+});
+
+app.get("/schedule", async (req, res) => {
+  const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
+
+  const createdEvent = await calendar.events.insert({
+    calendarId: "primary",
+    auth: oAuth2Client,
+    requestBody: {
+      summary: "TEST EVENT",
+      description: "Just for fun",
+      start: {
+        dateTime: dayjs(new Date()).add(1, "day").toISOString(),
+        timeZone: "Asia/Kolkata",
+      },
+      end: {
+        dateTime: dayjs(new Date()).add(1, "day").toISOString(),
+        timeZone: "Asia/Kolkata",
+      },
+    },
+  });
+  const channel = await client.channels.fetch(CHANNEL_ID);
+  const embed = new EmbedBuilder()
+    .setTitle("Event Added")
+    .setAuthor({
+      name: "CLICK HERE TO VIEW",
+      url: createdEvent.data.htmlLink,
+      iconURL:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/2048px-Google_Calendar_icon_%282020%29.svg.png"
+    })
+    .setColor(0x00FF00);
+  channel.send({ embeds: [embed] });
+
+  res.send({ message: createdEvent.data.htmlLink });
+});
+
+// Start the Express server
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
+});
 
 figlet.text(
   "BOT  STARTED ",

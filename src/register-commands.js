@@ -58,7 +58,7 @@ const commands = [
     ],
   },
   {
-    name: "Create Google Calender Event",
+    name: "calender",
     description: "Creates a Google Calender event",
     options: [
       {
@@ -88,8 +88,8 @@ const commands = [
     ],
   },
   {
-    name: "Create Google Meet",
-    description: "Schedules a Google Meet event with multiple email",
+    name: "meet",
+    description: "Schedules a Google Meet Event on your Google Calender with multiple people",
     options: [
       {
         name: "title",
@@ -110,8 +110,20 @@ const commands = [
         required: true,
       },
       {
-        name: "time",
-        description: "Enter time(HH:MM am/pm eg: 10:50pm) of the event",
+        name: "email-one",
+        description: "Enter email(eg: 1abc@gmail.com) of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
+        name: "email-two",
+        description: "Enter email(eg: 1abc@gmail.com) of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
+        name: "email-three",
+        description: "Enter email(eg: 1abc@gmail.com) of the event",
         type: ApplicationCommandOptionType.String,
         required: true,
       }
