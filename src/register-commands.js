@@ -110,6 +110,12 @@ const commands = [
         required: true,
       },
       {
+        name: "time",
+        description: "Enter time(HH:MM am/pm eg: 10:50pm) of the event",
+        type: ApplicationCommandOptionType.String,
+        required: true,
+      },
+      {
         name: "email-one",
         description: "Enter email(eg: 1abc@gmail.com) of the event",
         type: ApplicationCommandOptionType.String,
@@ -119,13 +125,12 @@ const commands = [
         name: "email-two",
         description: "Enter email(eg: 1abc@gmail.com) of the event",
         type: ApplicationCommandOptionType.String,
-        required: true,
+        
       },
       {
         name: "email-three",
         description: "Enter email(eg: 1abc@gmail.com) of the event",
         type: ApplicationCommandOptionType.String,
-        required: true,
       }
     ],
   },

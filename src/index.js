@@ -188,20 +188,12 @@ client.on("interactionCreate", async (interaction) => {
 
     const [day, month, year] = date.split("/");
     const [hour, minute, period] = time.match(/(\d+):(\d+)(am|pm)/i).slice(1);
-    console.log("minute: ", minute);
-    console.log("hour: ", hour);
-
     let formattedHour = parseInt(hour);
     if (period.toLowerCase() === "pm" && formattedHour !== 12) {
       formattedHour += 12;
     } else if (period.toLowerCase() === "am" && formattedHour === 12) {
       formattedHour = 0;
     }
-    console.log("formattedHour: ", formattedHour);
-    console.log(
-      "formattedHour.toString().padStart(2, '0')",
-      formattedHour.toString().padStart(2, "0")
-    );
     formattedHour = formattedHour.toString().padStart(2, "0");
 
     const startDateTime = new Date(
@@ -211,43 +203,109 @@ client.on("interactionCreate", async (interaction) => {
       formattedHour,
       minute
     );
-
-    // console.log("dayjs(new Date()): ", dayjs(new Date()));
-    // console.log("startDateTime:", startDateTime);
-    // const localStartDateTime = startDateTime.toLocaleString();
-    // console.log("localStartDateTime: ", localStartDateTime);
-
-    // Authenticate the user
+    const eventData = {
+      title,
+      description,
+      startDateTime: startDateTime.toISOString(),
+      endDateTime: startDateTime.toISOString(),
+    };
+    const encodedEventData = encodeURIComponent(JSON.stringify(eventData));
+    // console.log("encodedEventData: ", encodedEventData);
     const authUrl = oAuth2Client.generateAuthUrl({
       scope: ["https://www.googleapis.com/auth/calendar.events"],
-      state: interaction.channel.id,
-      // Store the Discord channel ID as state
+      state: encodedEventData,
     });
-
-
     const embed = new EmbedBuilder()
-    .setTitle("Login/Signup with your Google Account")
-    .setAuthor({
-      name: "CLICK HERE",
-      url: authUrl,
-      iconURL:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/2008px-Google_%22G%22_Logo.svg.png"
-    })
-    .setDescription("Please Authenticate to proceed")
-    .setColor("Random");
+      .setTitle("Login/Signup with your Google Account")
+      .setAuthor({
+        name: "CLICK HERE",
+        url: authUrl,
+        iconURL:
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/2008px-Google_%22G%22_Logo.svg.png",
+      })
+      .setDescription("Please Authenticate to proceed")
+      .setColor("Random");
     // Send the authorization URL in the Discord channel
-    interaction.reply(
-      { embeds: [embed] }
-      );
+    interaction.reply({ embeds: [embed] });
+  } else if (interaction.commandName == "meet") {
+    let title = interaction.options.get("title")?.value;
+    let description = interaction.options.get("description")?.value;
+    let date = interaction.options.get("date")?.value;
+    let time = interaction.options.get("time")?.value;
+    let emailone = interaction.options.get("email-one")?.value;
+    // console.log("emailone: ", emailone);
+    let emailtwo = interaction.options.get("email-two")?.value;
+    // console.log("emailtwo: ", emailtwo);
+    let emailthree = interaction.options.get("email-three")?.value;
+    // console.log("emailthree: ", emailthree);
 
+    let x = [
+      {
+        email: emailone,
+      },
+      {
+        email: emailtwo,
+      },
+      {
+        email: emailthree,
+      },
+    ];
+
+    let mailData = x.filter((e) => e.email !== undefined && e.email !== null);
+
+    // console.log("mailData: ", mailData);
+
+    const [day, month, year] = date.split("/");
+    const [hour, minute, period] = time.match(/(\d+):(\d+)(am|pm)/i).slice(1);
+    let formattedHour = parseInt(hour);
+    if (period.toLowerCase() === "pm" && formattedHour !== 12) {
+      formattedHour += 12;
+    } else if (period.toLowerCase() === "am" && formattedHour === 12) {
+      formattedHour = 0;
+    }
+    formattedHour = formattedHour.toString().padStart(2, "0");
+
+    const startDateTime = new Date(
+      year,
+      parseInt(month) - 1,
+      day,
+      formattedHour,
+      minute
+    );
+    const eventData = {
+      title,
+      description,
+      startDateTime: startDateTime.toISOString(),
+      endDateTime: startDateTime.toISOString(),
+      mailData,
+    };
+    const encodedEventData = encodeURIComponent(JSON.stringify(eventData));
+    // console.log("encodedEventData: ", encodedEventData);
+    const authUrl = oAuth2Client.generateAuthUrl({
+      scope: ["https://www.googleapis.com/auth/calendar.events"],
+      state: encodedEventData,
+    });
+    const embed = new EmbedBuilder()
+      .setTitle("Login/Signup with your Google Account")
+      .setAuthor({
+        name: "CLICK HERE",
+        url: authUrl,
+        iconURL:
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/2008px-Google_%22G%22_Logo.svg.png",
+      })
+      .setDescription("Please Authenticate to proceed")
+      .setColor("Random");
+    // Send the authorization URL in the Discord channel
+    interaction.reply({ embeds: [embed] });
   } else if (interaction.commandName == "github") {
     let username = interaction.options.get("username")?.value;
-    console.log("username: ", username);
+    // console.log("username: ", username);
     try {
       const response = await axios.get(
         `https://api.github.com/users/${username}`
       );
       const allUserData = response.data;
-      console.log("allUserData: ", allUserData);
+      // console.log("allUserData: ", allUserData);
       const {
         login,
         name,
@@ -375,19 +433,21 @@ app.get("/", (req, res) => {
 
 app.get("/google/redirect", async (req, res) => {
   const code = req.query.code;
-  const channelID = req.query.state;
+  const data = req.query.state;
+
   const { tokens } = await oAuth2Client.getToken(code);
   oAuth2Client.setCredentials(tokens);
-  const channel = await client.channels.fetch(channelID);
+  const channel = await client.channels.fetch(CHANNEL_ID);
   const embed = new EmbedBuilder()
     .setTitle("Confirmation Message")
     .setAuthor({
       name: "CLICK HERE",
-      url: "http://localhost:3000/schedule",
-      iconURL:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/2048px-Google_Calendar_icon_%282020%29.svg.png"
+      url: `http://localhost:3000/schedule?state=${data}`,
+      iconURL:
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/2048px-Google_Calendar_icon_%282020%29.svg.png",
     })
     .setDescription("Please Confirm or Ignore")
-    .setColor(0xFF0000)
+    .setColor(0xff0000)
     .setFooter({
       text: `After Confirming , Come back to discord`,
     });
@@ -399,12 +459,11 @@ app.get("/google/redirect", async (req, res) => {
 });
 
 app.get("/schedule", async (req, res) => {
-  const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
+  try {
+    const encodedEventData = req.query.state;
+    const eventData = JSON.parse(decodeURIComponent(encodedEventData));
 
-  const createdEvent = await calendar.events.insert({
-    calendarId: "primary",
-    auth: oAuth2Client,
-    requestBody: {
+    var event = {
       summary: "TEST EVENT",
       description: "Just for fun",
       start: {
@@ -415,20 +474,82 @@ app.get("/schedule", async (req, res) => {
         dateTime: dayjs(new Date()).add(1, "day").toISOString(),
         timeZone: "Asia/Kolkata",
       },
-    },
-  });
-  const channel = await client.channels.fetch(CHANNEL_ID);
-  const embed = new EmbedBuilder()
-    .setTitle("Event Added")
-    .setAuthor({
-      name: "CLICK HERE TO VIEW",
-      url: createdEvent.data.htmlLink,
-      iconURL:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/2048px-Google_Calendar_icon_%282020%29.svg.png"
-    })
-    .setColor(0x00FF00);
-  channel.send({ embeds: [embed] });
+      conferenceData: {
+        createRequest: {
+          requestId: uuid(),
+        },
+        attendees: [{ email: "gameshighon@gmail.com" }],
+      },
+      attendees: [
+        { email: "gameshighon@gmail.com" },
+        { email: "narayandutta2208@gmail.com" },
+      ],
+    };
 
-  res.send({ message: createdEvent.data.htmlLink });
+    if (eventData.mailData) {
+      event = {
+        summary: eventData.title,
+        description: eventData.description,
+        start: {
+          dateTime: eventData.startDateTime,
+          timeZone: "Asia/Kolkata",
+        },
+        end: {
+          dateTime: eventData.endDateTime,
+          timeZone: "Asia/Kolkata",
+        },
+        conferenceData: {
+          createRequest: {
+            requestId: uuid(),
+          },
+          attendees: eventData.mailData,
+        },
+        attendees: eventData.mailData,
+      };
+    } else {
+      event = {
+        summary: eventData.title,
+        description: eventData.description,
+        start: {
+          dateTime: eventData.startDateTime,
+          timeZone: "Asia/Kolkata",
+        },
+        end: {
+          dateTime: eventData.endDateTime,
+          timeZone: "Asia/Kolkata",
+        },
+      };
+    }
+    const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
+    const createdEvent = await calendar.events.insert({
+      calendarId: "primary",
+      auth: oAuth2Client,
+      requestBody: event,
+    });
+
+    const channel = await client.channels.fetch(CHANNEL_ID);
+    const embed = new EmbedBuilder()
+      .setTitle("Event Added")
+      .setAuthor({
+        name: "CLICK HERE TO VIEW",
+        url: createdEvent.data.htmlLink,
+        iconURL:
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/2048px-Google_Calendar_icon_%282020%29.svg.png",
+      })
+      .setColor(0x00ff00);
+    channel.send({ embeds: [embed] });
+
+    res.send({ message: createdEvent.data.htmlLink });
+  } catch (error) {
+    console.log("error",error);
+    res.send({ error });
+  }
+});
+
+// Handle errors gracefully
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Something went wrong!");
 });
 
 // Start the Express server
